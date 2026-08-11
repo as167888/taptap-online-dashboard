@@ -162,7 +162,7 @@ tr:hover { background:#263348; }
   <!-- ====== 页头 ====== -->
   <div class="header">
     <h1>🎮 多游戏在线人数看板</h1>
-    <p class="sub">175 款游戏 · 合计在线 45,172 人 · 报告生成: 2026-08-11 20:45:09</p>
+    <p class="sub">175 款游戏 · 合计在线 45,172 人 · 报告生成: 2026-08-11 20:46:13</p>
   </div>
 
   <!-- ====== 访问统计 ====== -->
@@ -12836,7 +12836,7 @@ tr:hover { background:#263348; }
   </div>
 
   <div class="footer">
-    每小时定时采集 · 报告生成: 2026-08-11 20:45:09
+    每小时定时采集 · 报告生成: 2026-08-11 20:46:13
   </div>
 </div>
 
@@ -13033,15 +13033,18 @@ function initCompareChart() {
     return d.ts.split(' ')[1].slice(0, 5);
   });
 
-  var datasets = GAMES.slice(0, 10).map(function(g) {
+  var top10 = GAMES.slice(0, 10);
+  var datasets = top10.map(function(g, i) {
+    var hue = Math.round(i * 360 / top10.length);
+    var color = 'hsl(' + hue + ', 65%, 55%)';
     return {
       label: g.name,
       data: g.data.map(function(d) { return d.count; }),
-      borderColor: g.color,
+      borderColor: color,
       backgroundColor: 'transparent',
       tension: 0.3,
       pointRadius: 4,
-      pointBackgroundColor: g.color,
+      pointBackgroundColor: color,
       pointBorderColor: '#1e293b',
       pointBorderWidth: 1,
       borderWidth: 2,
