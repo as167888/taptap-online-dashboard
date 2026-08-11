@@ -162,7 +162,7 @@ tr:hover { background:#263348; }
   <!-- ====== 页头 ====== -->
   <div class="header">
     <h1>🎮 多游戏在线人数看板</h1>
-    <p class="sub">22 款游戏 · 合计在线 39,777 人 · 报告生成: 2026-08-11 17:56:48</p>
+    <p class="sub">22 款游戏 · 合计在线 39,777 人 · 报告生成: 2026-08-11 17:59:26</p>
   </div>
 
   <!-- ====== 访问统计 ====== -->
@@ -4177,6 +4177,10 @@ tr:hover { background:#263348; }
       <p class="detail-sub">22 款游戏 · 在线人数趋势对比</p>
     </div>
     <div class="chart-card">
+      <h3>📊 总在线人数</h3>
+      <div class="chart-wrap"><canvas id="totalChart"></canvas></div>
+    </div>
+    <div class="chart-card">
       <h3>全部游戏趋势</h3>
       <div class="chart-wrap"><canvas id="compareChart"></canvas></div>
     </div>
@@ -4202,7 +4206,7 @@ tr:hover { background:#263348; }
   </div>
 
   <div class="footer">
-    每小时定时采集 · 报告生成: 2026-08-11 17:56:48
+    每小时定时采集 · 报告生成: 2026-08-11 17:59:26
   </div>
 </div>
 
@@ -4243,6 +4247,7 @@ function showCompare() {
   document.getElementById('overview').style.display = 'none';
   document.getElementById('compare-view').classList.add('active');
   document.getElementById('compare-view').scrollIntoView({ behavior:'smooth', block:'start' });
+  initTotalChart();
   initCompareChart();
   renderCompareTable();
 }
@@ -4279,8 +4284,8 @@ function initGameChart(appId) {
         label: '在线人数',
         data: values,
         borderColor: game.color,
-        backgroundColor: game.color + '20',
-        fill: true,
+        backgroundColor: 'transparent',
+        fill: false,
         tension: 0.3,
         pointRadius: 6,
         pointBackgroundColor: game.color,
@@ -4321,6 +4326,70 @@ function initGameChart(appId) {
 }
 
 // ============================================================
+// 总在线人数图表
+// ============================================================
+var totalChartInst = null;
+
+function initTotalChart() {
+  if (totalChartInst) return;
+  var canvas = document.getElementById('totalChart');
+  if (!canvas) return;
+
+  var labels = GAMES[0].data.map(function(d) {
+    return d.ts.split(' ')[1].slice(0, 5);
+  });
+
+  var ctx = canvas.getContext('2d');
+  totalChartInst = new Chart(ctx, {
+    type: 'line',
+    data: {
+      labels: labels,
+      datasets: [{
+        label: '总计在线',
+        data: TOTAL_ONLINE.map(function(d) { return d.count; }),
+        borderColor: '#f59e0b',
+        backgroundColor: '#f59e0b20',
+        fill: true,
+        tension: 0.3,
+        pointRadius: 6,
+        pointBackgroundColor: '#f59e0b',
+        pointBorderColor: '#1e293b',
+        pointBorderWidth: 2,
+        borderWidth: 3,
+      }]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      interaction: { mode: 'index', intersect: false },
+      plugins: {
+        legend: { display: false },
+        tooltip: {
+          mode: 'index', intersect: false,
+          callbacks: {
+            label: function(ctx) { return ' 总计: ' + ctx.raw.toLocaleString() + ' 人'; }
+          }
+        }
+      },
+      scales: {
+        x: {
+          ticks: { color: '#94a3b8', font: { size: 12 } },
+          grid: { color: '#1e293b' }
+        },
+        y: {
+          ticks: {
+            color: '#94a3b8',
+            callback: function(v) { return v >= 1000 ? (v/1000).toFixed(1) + 'k' : v; }
+          },
+          grid: { color: '#1e293b' },
+          beginAtZero: false
+        }
+      }
+    }
+  });
+}
+
+// ============================================================
 // 综合对比图表
 // ============================================================
 var compareChartInst = null;
@@ -4335,30 +4404,18 @@ function initCompareChart() {
     return d.ts.split(' ')[1].slice(0, 5);
   });
 
-  var datasets = [{
-    label: '★ 总计',
-    data: TOTAL_ONLINE.map(function(d) { return d.count; }),
-    borderColor: '#f59e0b',
-    backgroundColor: '#f59e0b20',
-    tension: 0.3,
-    pointRadius: 6,
-    pointBackgroundColor: '#f59e0b',
-    pointBorderColor: '#1e293b',
-    pointBorderWidth: 2,
-    borderWidth: 3,
-    order: 0,
-  }].concat(GAMES.map(function(g) {
+  var datasets = GAMES.map(function(g) {
     return {
       label: g.name,
       data: g.data.map(function(d) { return d.count; }),
       borderColor: g.color,
       backgroundColor: 'transparent',
       tension: 0.3,
-      pointRadius: 2,
+      pointRadius: 4,
       pointBackgroundColor: g.color,
       pointBorderColor: '#1e293b',
       pointBorderWidth: 1,
-      borderWidth: 1,
+      borderWidth: 2,
       order: 1,
     };
   }));
